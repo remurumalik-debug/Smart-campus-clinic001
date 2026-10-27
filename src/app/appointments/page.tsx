@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Search, CalendarDays, X, Clock } from "lucide-react";
@@ -17,12 +17,7 @@ export default function AppointmentsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  useEffect(() => {
-    if (!session?.user) return;
-    fetchAppointments();
-  }, [session, statusFilter]);
-
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     const userId = (session?.user as any)?.id;
     if (!userId) return;
     setLoading(true);
@@ -31,10 +26,18 @@ export default function AppointmentsPage() {
       if (statusFilter) url += `&status=${statusFilter}`;
       if (search) url += `&search=${encodeURIComponent(search)}`;
       const res = await fetch(url);
-      if (res.ok) setAppointments(await res.json());
-    } catch {}
+      const data = await res.json();
+      setAppointments(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error("Failed to fetch appointments", e);
+    }
     setLoading(false);
-  };
+  }, [session, statusFilter, search]);
+
+  useEffect(() => {
+    if (!session?.user) return;
+    fetchAppointments();
+  }, [fetchAppointments]);
 
   const handleCancel = async (id: string) => {
     if (!confirm("Are you sure you want to cancel this appointment?")) return;
@@ -45,15 +48,17 @@ export default function AppointmentsPage() {
         body: JSON.stringify({ id, status: "cancelled" }),
       });
       fetchAppointments();
-    } catch {}
+    } catch (e) {
+      console.error("Failed to cancel appointment", e);
+    }
   };
 
   if (!session) return null;
 
-  const filtered = appointments.filter((a) =>
+  const filtered = Array.isArray(appointments) ? appointments.filter((a) =>
     !search || a.doctorName?.toLowerCase().includes(search.toLowerCase()) ||
     a.departmentName?.toLowerCase().includes(search.toLowerCase())
-  );
+  ) : [];
 
   return (
     <StudentPageLayout>

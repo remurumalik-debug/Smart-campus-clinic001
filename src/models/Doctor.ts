@@ -33,4 +33,7 @@ const DoctorSchema = new Schema<IDoctorDoc>(
   { timestamps: true }
 );
 
+DoctorSchema.index({ departmentId: 1 });
+DoctorSchema.index({ isAvailable: 1 });
+
 export const Doctor = mongoose.models.Doctor || mongoose.model<IDoctorDoc>("Doctor", DoctorSchema);

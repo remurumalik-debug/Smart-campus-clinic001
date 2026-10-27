@@ -12,6 +12,7 @@ export interface IAppointmentDoc extends Document {
   appointmentTime: string;
   symptoms: string;
   status: string;
+  slotActive: boolean;
 }
 
 const AppointmentSchema = new Schema<IAppointmentDoc>(
@@ -31,10 +32,18 @@ const AppointmentSchema = new Schema<IAppointmentDoc>(
       enum: ["pending", "approved", "rejected", "completed", "cancelled"],
       default: "pending",
     },
+    slotActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
 
-AppointmentSchema.index({ doctorId: 1, appointmentDate: 1, appointmentTime: 1 }, { unique: true });
+AppointmentSchema.index(
+  { doctorId: 1, appointmentDate: 1, appointmentTime: 1 },
+  { unique: true, partialFilterExpression: { slotActive: { $eq: true } } }
+);
+AppointmentSchema.index({ userId: 1, appointmentDate: -1, appointmentTime: -1 });
+AppointmentSchema.index({ status: 1 });
+AppointmentSchema.index({ appointmentDate: 1, status: 1 });
+AppointmentSchema.index({ createdAt: -1 });
 
 export const Appointment = mongoose.models.Appointment || mongoose.model<IAppointmentDoc>("Appointment", AppointmentSchema);

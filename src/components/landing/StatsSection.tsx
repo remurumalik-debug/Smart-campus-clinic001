@@ -4,7 +4,6 @@ import { Users, CalendarCheck, Heart, Stethoscope } from "lucide-react";
 import { motion } from "framer-motion";
 
 const stats = [
-  { icon: Users, value: "500+", label: "Students Served" },
   { icon: CalendarCheck, value: "50+", label: "Appointments Daily" },
   { icon: Heart, value: "95%", label: "Satisfaction Rate" },
   { icon: Stethoscope, value: "10+", label: "Clinic Doctors" },
@@ -36,7 +35,7 @@ export default function StatsSection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
-          className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4"
+          className="grid gap-8 justify-items-center sm:grid-cols-2 lg:grid-cols-3"
         >
           {stats.map((stat) => (
             <motion.div

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Stethoscope, Plus, Mail, Building2 } from "lucide-react";
+import { Stethoscope, Plus, Mail, Building2, Trash2 } from "lucide-react";
 import AdminPageLayout from "@/components/layout/AdminPageLayout";
 import Button from "@/components/ui/Button";
 import { toast } from "sonner";
@@ -18,16 +18,26 @@ export default function AdminDoctorsPage() {
     setLoading(true);
     try {
       const res = await fetch("/api/doctors");
-      if (res.ok) setDoctors(await res.json());
-    } catch {}
+      if (res.ok) {
+        const data = await res.json();
+        setDoctors(Array.isArray(data) ? data : []);
+      }
+    } catch (e) {
+      console.error("Failed to fetch doctors", e);
+    }
     setLoading(false);
   };
 
   const fetchDepartments = async () => {
     try {
       const res = await fetch("/api/departments");
-      if (res.ok) setDepartments(await res.json());
-    } catch {}
+      if (res.ok) {
+        const data = await res.json();
+        setDepartments(Array.isArray(data) ? data : []);
+      }
+    } catch (e) {
+      console.error("Failed to fetch departments", e);
+    }
   };
 
   useEffect(() => {
@@ -55,6 +65,22 @@ export default function AdminDoctorsPage() {
       } else {
         const data = await res.json();
         toast.error(data.error || "Failed to add doctor");
+      }
+    } catch {
+        toast.error("Something went wrong");
+    }
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!window.confirm(`Delete doctor "${name}"? This action cannot be undone.`)) return;
+    try {
+      const res = await fetch(`/api/doctors?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Doctor deleted");
+        fetchDoctors();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to delete doctor");
       }
     } catch {
       toast.error("Something went wrong");
@@ -130,7 +156,14 @@ export default function AdminDoctorsPage() {
                     </div>
                   </div>
                 </div>
-                <span className="text-xs text-muted bg-gray-100 px-2 py-1 rounded-md">{doc.specialization}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted bg-gray-100 px-2 py-1 rounded-md">{doc.specialization}</span>
+                  <button onClick={() => handleDelete(doc._id, doc.name)}
+                    className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                    title="Delete doctor">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>

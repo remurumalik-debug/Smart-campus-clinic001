@@ -9,12 +9,22 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 
 export default function StaffReportsPage() {
   const [stats, setStats] = useState<any>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/dashboard?staff=true")
-      .then((r) => r.json())
-      .then((data) => setStats(data.stats || {}))
-      .catch(() => {});
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/admin/dashboard?staff=true");
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data.stats || {});
+        }
+      } catch (e) {
+        console.error("Failed to fetch reports", e);
+      }
+      setLoading(false);
+    };
+    fetchStats();
   }, []);
 
   return (

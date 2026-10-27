@@ -2,18 +2,17 @@
 
 import { ReactNode } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { redirect } from "next/navigation";
 import StudentSidebar from "./StudentSidebar";
 import SignOutButton from "@/components/SignOutButton";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 export default function StudentPageLayout({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
-  const router = useRouter();
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  if (status === "unauthenticated") {
+    redirect("/login");
+  }
 
   if (status === "loading") {
     return (
@@ -23,7 +22,10 @@ export default function StudentPageLayout({ children }: { children: ReactNode })
     );
   }
 
-  if (!session) return null;
+  if (!session) {
+    redirect("/login");
+    return null;
+  }
 
   const user = session.user as any;
 
@@ -36,6 +38,7 @@ export default function StudentPageLayout({ children }: { children: ReactNode })
             <h2 className="text-base sm:text-lg font-semibold text-dark">Student Dashboard</h2>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
+            <NotificationBell />
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <span className="text-primary font-semibold text-sm">
@@ -46,7 +49,7 @@ export default function StudentPageLayout({ children }: { children: ReactNode })
                 {user?.name}
               </span>
             </div>
-            <SignOutButton className="text-sm text-muted hover:text-dark bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer min-h-[32px]" />
+            <SignOutButton callbackUrl="/login" className="text-sm text-muted hover:text-dark bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer min-h-[32px]" />
           </div>
         </header>
         <main className="flex-1 p-4 sm:p-6 overflow-auto">{children}</main>

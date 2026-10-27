@@ -18,5 +18,6 @@ const ChatMessageSchema = new Schema<IChatMessageDoc>(
 );
 
 ChatMessageSchema.index({ userId: 1, chatId: 1 });
+ChatMessageSchema.index({ chatId: 1, createdAt: 1 });
 
 export const ChatMessage = mongoose.models.ChatMessage || mongoose.model<IChatMessageDoc>("ChatMessage", ChatMessageSchema);

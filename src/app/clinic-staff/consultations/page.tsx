@@ -18,8 +18,12 @@ export default function StaffConsultationsPage() {
         if (res.ok) {
           const data = await res.json();
           setAppointments(data.appointments || []);
+        } else {
+          console.error("Failed to fetch consultations", res.status);
         }
-      } catch {}
+      } catch (e) {
+        console.error("Failed to fetch consultations", e);
+      }
       setLoading(false);
     };
     fetchData();

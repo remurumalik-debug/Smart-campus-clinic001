@@ -2,25 +2,30 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 
-interface Notification {
+export interface NotificationItem {
   _id: string;
   title: string;
   message: string;
   type: "info" | "success" | "warning" | "error";
+  notificationType?: string;
+  userRole?: string;
   link?: string;
+  relatedAppointmentId?: string;
   read: boolean;
   createdAt: string;
 }
 
 export function useNotifications() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const fetchNotifications = useCallback(async (unreadOnly = false) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
     try {
-      const res = await fetch(`/api/notifications?unread=${unreadOnly}`);
+      const res = await fetch(`/api/notifications?unread=${unreadOnly}`, { signal: controller.signal });
       if (res.ok) {
         const data = await res.json();
         setNotifications(data.notifications || []);
@@ -29,6 +34,7 @@ export function useNotifications() {
     } catch {
       /* silent */
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   }, []);
@@ -46,6 +52,11 @@ export function useNotifications() {
         const data = JSON.parse(event.data);
         if (data.type === "count") {
           setUnreadCount(data.unreadCount);
+        } else if (data.kind === "notification") {
+          fetchNotifications();
+          setUnreadCount((prev) => prev + 1);
+        } else if (data.kind === "appointment") {
+          fetchNotifications();
         }
       } catch {
         /* silent */
@@ -59,7 +70,7 @@ export function useNotifications() {
     return () => {
       eventSource.close();
     };
-  }, []);
+  }, [fetchNotifications]);
 
   const markAsRead = useCallback(async (id: string) => {
     try {
@@ -91,6 +102,25 @@ export function useNotifications() {
     }
   }, []);
 
+  const deleteNotification = useCallback(async (id: string) => {
+    try {
+      await fetch(`/api/notifications?id=${id}`, { method: "DELETE" });
+      setNotifications((prev) => prev.filter((n) => n._id !== id));
+    } catch {
+      /* silent */
+    }
+  }, []);
+
+  const clearAll = useCallback(async () => {
+    try {
+      await fetch("/api/notifications?clearAll=true", { method: "DELETE" });
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch {
+      /* silent */
+    }
+  }, []);
+
   return {
     notifications,
     unreadCount,
@@ -98,5 +128,7 @@ export function useNotifications() {
     fetchNotifications,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
+    clearAll,
   };
 }

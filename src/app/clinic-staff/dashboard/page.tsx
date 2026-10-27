@@ -19,13 +19,13 @@ export default function StaffDashboardPage() {
     fetch("/api/admin/dashboard?staff=true")
       .then((r) => r.json())
       .then(setData)
-      .catch(() => {})
+      .catch((e) => console.error("Failed to fetch staff dashboard", e))
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
     fetchDashboard();
-    const interval = setInterval(fetchDashboard, 15000);
+    const interval = setInterval(fetchDashboard, 60000);
     return () => clearInterval(interval);
   }, []);
 

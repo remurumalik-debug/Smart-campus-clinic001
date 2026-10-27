@@ -7,9 +7,7 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xs">CC</span>
-              </div>
+              <img src="/logo.png" alt="Logo" className="w-7 h-7 rounded-lg" />
               <span className="font-semibold text-dark">CampusClinic</span>
             </div>
             <p className="text-sm text-muted leading-relaxed">

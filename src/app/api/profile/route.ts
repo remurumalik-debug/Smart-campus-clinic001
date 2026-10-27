@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { User } from "@/models/User";
 import bcrypt from "bcryptjs";
+import { createNotification } from "@/lib/notify";
 
 export async function GET() {
   try {
@@ -11,15 +12,20 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectDB();
+    const ok = await connectDB();
+    if (!ok) {
+      return NextResponse.json({ name: (session.user as any).name, email: (session.user as any).email, role: (session.user as any).role });
+    }
+
     const user = await User.findById((session.user as any).id).select("-password");
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     return NextResponse.json(user);
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch profile" }, { status: 500 });
+  } catch (e) {
+    console.error("Failed to fetch profile", e);
+    return NextResponse.json({ name: "", email: "" });
   }
 }
 
@@ -30,7 +36,8 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectDB();
+    const ok = await connectDB();
+    if (!ok) return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
     const body = await req.json();
     const { name, department, image, currentPassword, newPassword } = body;
     const userId = (session.user as any).id;
@@ -43,6 +50,9 @@ export async function PATCH(req: NextRequest) {
     if (name) user.name = name;
     if (department) user.department = department;
     if (image !== undefined) user.image = image;
+
+    const profileChanged = !!(name || department !== undefined || image !== undefined);
+    const passwordChanged = !!newPassword;
 
     if (newPassword) {
       if (!currentPassword) {
@@ -60,6 +70,30 @@ export async function PATCH(req: NextRequest) {
 
     await user.save();
 
+    if (profileChanged) {
+      createNotification({
+        userId,
+        userRole: "student",
+        title: "Profile Updated",
+        message: "Your profile information has been updated successfully.",
+        type: "success",
+        notificationType: "profile_updated",
+        link: "/profile",
+      });
+    }
+
+    if (passwordChanged) {
+      createNotification({
+        userId,
+        userRole: "student",
+        title: "Password Changed",
+        message: "Your account password has been changed successfully.",
+        type: "info",
+        notificationType: "password_changed",
+        link: "/profile",
+      });
+    }
+
     return NextResponse.json({
       id: user._id,
       name: user.name,
@@ -69,7 +103,8 @@ export async function PATCH(req: NextRequest) {
       image: user.image,
       role: user.role,
     });
-  } catch {
+  } catch (e) {
+    console.error("Failed to update profile", e);
     return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
   }
 }

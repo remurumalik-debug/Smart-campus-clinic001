@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   Users,
@@ -8,11 +8,7 @@ import {
   CalendarCheck,
   Building2,
   AlertTriangle,
-  ClipboardList,
-  TrendingUp,
   Clock,
-  UserPlus,
-  Bell,
   GraduationCap,
   Shield,
 } from "lucide-react";
@@ -40,31 +36,93 @@ interface DashboardData {
   recentAppointments: any[];
   recentUsers: any[];
   chartData: { date: string; count: number }[];
+  warning?: string;
+}
+
+function DbDiagnostics() {
+  const [diag, setDiag] = useState<any>(null);
+  const [busy, setBusy] = useState(false);
+
+  const runCheck = async () => {
+    setBusy(true);
+    try {
+      const res = await fetch("/api/db-check");
+      setDiag(await res.json());
+    } catch { setDiag({ error: "Diagnostic request failed" });
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <details className="text-xs">
+      <summary className="cursor-pointer text-amber-800 hover:text-amber-900 font-medium">
+        {busy ? "Running diagnostics..." : "Run database diagnostics"}
+      </summary>
+      {!diag && !busy && (
+        <button onClick={runCheck} className="mt-2 underline">Check connection now</button>
+      )}
+      {diag && (
+        <div className="mt-2 space-y-1 font-mono text-amber-800">
+          <p>Mongoose state: {diag.mongooseState}</p>
+          {diag.connection?.error && <p>Error: {diag.connection.error}</p>}
+          {diag.connection?.readyState != null && <p>ReadyState: {diag.connection.readyState} ({["disconnected","connected","connecting","disconnecting"][diag.connection.readyState]})</p>}
+          <p>Duration: {diag.connection?.duration}ms</p>
+          {diag.dns && (
+            <details>
+              <summary className="cursor-pointer">DNS resolutions</summary>
+              {Object.entries(diag.dns).map(([host, result]) => (
+                <p key={host} className="pl-2">{host}: {String(result).slice(0, 80)}</p>
+              ))}
+            </details>
+          )}
+        </div>
+      )}
+    </details>
+  );
 }
 
 export default function AdminDashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const abortRef = useRef<AbortController | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchData = async () => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const timeout = setTimeout(() => controller.abort(), 15000);
     try {
-      setLoading(true);
-      const res = await fetch("/api/admin/dashboard");
+      const res = await fetch("/api/admin/dashboard", { signal: controller.signal });
       if (!res.ok) throw new Error("Failed to fetch dashboard data");
       const json = await res.json();
       setData(json);
+      setError("");
     } catch (err: any) {
-      setError(err.message);
+      if (err.name !== "AbortError") setError(err.message);
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 15000);
-    return () => clearInterval(interval);
+    intervalRef.current = setInterval(fetchData, 60000);
+    const onVisibility = () => {
+      if (document.hidden) {
+        clearInterval(intervalRef.current ?? undefined);
+      } else {
+        fetchData();
+        intervalRef.current = setInterval(fetchData, 60000);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      abortRef.current?.abort();
+      clearInterval(intervalRef.current ?? undefined);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, []);
 
   if (loading) {
@@ -96,7 +154,7 @@ export default function AdminDashboardPage() {
 
   if (!data) return null;
 
-  const { stats, recentAppointments, recentUsers, chartData } = data;
+  const { stats, recentAppointments, recentUsers, chartData, warning } = data;
   const maxChartValue = Math.max(...chartData.map((d) => d.count), 1);
 
   const statCards = [
@@ -119,6 +177,13 @@ export default function AdminDashboardPage() {
         <h1 className="text-xl sm:text-2xl font-bold text-dark">Overview</h1>
         <p className="text-sm text-muted mt-1">Welcome to the Campus Clinic administration panel</p>
       </div>
+
+      {warning && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 space-y-3">
+          <p>{warning}</p>
+          <DbDiagnostics />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {statCards.map((stat, i) => (

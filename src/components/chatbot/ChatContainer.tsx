@@ -11,6 +11,9 @@ import ChatInput from "./ChatInput";
 import { cn } from "@/lib/utils";
 
 export default function ChatContainer() {
+  const { data: session } = useSession();
+  const router = useRouter();
+
   const {
     messages,
     sendMessage,
@@ -20,10 +23,8 @@ export default function ChatContainer() {
     setActiveChatId,
     newChat,
     deleteChat,
-  } = useChat();
+  } = useChat((session?.user as any)?.id);
 
-  const { data: session } = useSession();
-  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 

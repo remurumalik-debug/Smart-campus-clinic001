@@ -23,4 +23,7 @@ const AdminSchema = new Schema<IAdminDoc>(
   { timestamps: true }
 );
 
+AdminSchema.index({ role: 1 });
+AdminSchema.index({ createdAt: -1 });
+
 export const Admin = mongoose.models.Admin || mongoose.model<IAdminDoc>("Admin", AdminSchema);

@@ -13,29 +13,51 @@ interface Chat {
   updatedAt: Date;
 }
 
-export function useChat() {
+export function useChat(userId?: string) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const prevUserIdRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    const stored = localStorage.getItem("chats");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as Chat[];
-        setChats(parsed);
-      } catch {
-        /* ignore */
+    if (userId !== prevUserIdRef.current) {
+      prevUserIdRef.current = userId;
+      setMessages([]);
+      setActiveChatId(null);
+      setLoading(false);
+      if (abortRef.current) {
+        abortRef.current.abort();
+        abortRef.current = null;
+      }
+
+      if (userId) {
+        const stored = localStorage.getItem(`chatList_${userId}`);
+        if (stored) {
+          try {
+            setChats(JSON.parse(stored) as Chat[]);
+          } catch {
+            setChats([]);
+          }
+        } else {
+          setChats([]);
+        }
+      } else {
+        setChats([]);
       }
     }
-  }, []);
+  }, [userId]);
 
-  const persistChats = useCallback((updated: Chat[]) => {
-    setChats(updated);
-    localStorage.setItem("chats", JSON.stringify(updated));
-  }, []);
+  const persistChats = useCallback(
+    (updated: Chat[]) => {
+      setChats(updated);
+      if (userId) {
+        localStorage.setItem(`chatList_${userId}`, JSON.stringify(updated));
+      }
+    },
+    [userId]
+  );
 
   const loadChat = useCallback(async (chatId: string) => {
     setActiveChatId(chatId);

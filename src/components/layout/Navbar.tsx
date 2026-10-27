@@ -20,9 +20,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">CC</span>
-            </div>
+            <img src="/logo.png" alt="Logo" className="w-8 h-8 rounded-lg" />
             <span className="font-semibold text-dark text-lg hidden sm:block">
               CampusClinic
             </span>
@@ -81,7 +79,7 @@ export default function Navbar() {
                     <span className="text-sm text-dark font-medium hidden lg:block">{user?.name}</span>
                   </div>
                   <button
-                    onClick={() => signOut()}
+                    onClick={() => signOut({ callbackUrl: "/login" })}
                     className="p-2 text-muted hover:text-dark rounded-lg hover:bg-accent transition-colors cursor-pointer"
                     title="Sign out"
                   >
@@ -148,7 +146,7 @@ export default function Navbar() {
                   </Link>
                 )}
                 <button
-                  onClick={() => { signOut(); setMobileOpen(false); }}
+                  onClick={() => { signOut({ callbackUrl: "/login" }); setMobileOpen(false); }}
                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 rounded-lg hover:bg-red-50 cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" /> Sign Out

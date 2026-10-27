@@ -36,7 +36,9 @@ export default function AdminUsersPage() {
         const data = await res.json();
         setUsers(data.users || []);
       }
-    } catch {}
+    } catch (e) {
+      console.error("Failed to fetch users", e);
+    }
     setLoading(false);
   };
 
@@ -53,7 +55,9 @@ export default function AdminUsersPage() {
         setUsers((prev) => prev.filter((u) => u._id !== deleteTarget._id));
         setDeleteTarget(null);
       }
-    } catch {}
+    } catch (e) {
+      console.error("Failed to delete user", e);
+    }
     setDeleting(false);
   };
 

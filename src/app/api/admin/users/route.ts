@@ -13,7 +13,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectDB();
+    const ok = await connectDB();
+    if (!ok) return NextResponse.json({ users: [], total: 0, page: 1, totalPages: 0 });
+
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search") || "";
     const page = parseInt(searchParams.get("page") || "1");
@@ -78,7 +80,8 @@ export async function GET(req: NextRequest) {
       page,
       totalPages: Math.ceil(total / limit),
     });
-  } catch {
+  } catch (err) {
+    console.error("Failed to fetch users", err);
     return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
   }
 }
@@ -90,7 +93,8 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectDB();
+    const ok = await connectDB();
+    if (!ok) return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
     const { id, ...updates } = await req.json();
     if (!id) return NextResponse.json({ error: "User ID is required" }, { status: 400 });
 
@@ -113,7 +117,8 @@ export async function PATCH(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     return NextResponse.json(user);
-  } catch {
+  } catch (err) {
+    console.error("Failed to update user", err);
     return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
   }
 }
@@ -125,7 +130,8 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectDB();
+    const ok = await connectDB();
+    if (!ok) return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "User ID is required" }, { status: 400 });
@@ -134,7 +140,8 @@ export async function DELETE(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     return NextResponse.json({ message: "User deleted successfully" });
-  } catch {
+  } catch (err) {
+    console.error("Failed to delete user", err);
     return NextResponse.json({ error: "Failed to delete user" }, { status: 500 });
   }
 }

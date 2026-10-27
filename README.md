@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Smart Campus Clinic
 
-## Getting Started
+Smart Campus Clinic is a web application for university health services. It supports student appointment booking, clinic staff workflows, administration, notifications, and an AI-assisted clinic chatbot.
 
-First, run the development server:
+## Intended use
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+This project is intended for university and educational use. It does not include a license file.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Requirements
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Node.js 20 or later
+- npm
+- MongoDB (local or MongoDB Atlas)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Setup
 
-## Learn More
+1. Install dependencies:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Create a `.env.local` file in the project root and configure the services you use:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```dotenv
+   MONGODB_URI=
+   MONGODB_SRV_URI=
+   NEXTAUTH_SECRET=
+   NEXTAUTH_URL=http://localhost:3000
+   OPENROUTER_API_KEY=
+   SMTP_HOST=
+   SMTP_PORT=587
+   SMTP_USER=
+   SMTP_PASS=
+   SMTP_FROM=
+   ```
 
-## Deploy on Vercel
+   Set at least one MongoDB connection URI and a strong `NEXTAUTH_SECRET`. The chatbot and email features need their respective API key or SMTP settings. See [MongoDB Atlas setup](./MONGODB_ATLAS_SETUP.md) for database configuration. Never commit `.env.local` or real credentials.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. Start the development server:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   ```bash
+   npm run dev
+   ```
+
+4. Open [http://localhost:3000](http://localhost:3000).
+
+## Available commands
+
+- `npm run dev` — start the development server
+- `npm run build` — create a production build
+- `npm run start` — serve a production build
+- `npm run lint` — run ESLint
+
+## Deployment
+
+Configure the required environment variables with your hosting provider and deploy the application as a Next.js project. Restrict database network access and use dedicated production credentials.

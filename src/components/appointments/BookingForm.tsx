@@ -7,6 +7,7 @@ import ConflictModal from "./ConflictModal";
 import { CalendarDays, ChevronLeft, ChevronRight, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useSlotUpdates, SlotEvent } from "@/hooks/useSlotUpdates";
 
 const STEPS = [
   "Department",
@@ -61,15 +62,19 @@ export default function BookingForm() {
   });
   const [conflictOpen, setConflictOpen] = useState(false);
   const [suggestedSlots, setSuggestedSlots] = useState<{ time: string; date: string }[]>([]);
+  const [doctorAlternatives, setDoctorAlternatives] = useState<{ doctorId: string; doctorName: string; departmentName: string }[]>([]);
+  const [conflictMessage, setConflictMessage] = useState("");
+  const [conflictFormattedDate, setConflictFormattedDate] = useState("");
+  const [conflictFormattedTime, setConflictFormattedTime] = useState("");
 
   useEffect(() => {
     fetch("/api/departments")
       .then((r) => r.json())
-      .then(setDepartments)
+      .then((data) => setDepartments(Array.isArray(data) ? data : []))
       .catch(() => toast.error("Failed to load departments"));
     fetch("/api/doctors")
       .then((r) => r.json())
-      .then(setDoctors)
+      .then((data) => setDoctors(Array.isArray(data) ? data : []))
       .catch(() => toast.error("Failed to load doctors"));
   }, []);
 
@@ -88,11 +93,11 @@ export default function BookingForm() {
     setLoading(true);
     try {
       const res = await fetch(
-        `/api/appointments?doctorId=${formData.doctorId}&date=${formData.appointmentDate}`
+        `/api/slots?doctorId=${formData.doctorId}&date=${formData.appointmentDate}`
       );
       if (res.ok) {
         const data = await res.json();
-        setOccupiedSlots(data.map((a: any) => a.appointmentTime));
+        setOccupiedSlots(Array.isArray(data.booked) ? data.booked : []);
       }
     } catch {
       // silent
@@ -104,6 +109,24 @@ export default function BookingForm() {
   useEffect(() => {
     fetchOccupiedSlots();
   }, [fetchOccupiedSlots]);
+
+  const handleSlotEvent = useCallback((event: SlotEvent) => {
+    if (event.action === "booked") {
+      setOccupiedSlots((prev) => {
+        if (prev.includes(event.appointmentTime)) return prev;
+        return [...prev, event.appointmentTime];
+      });
+    } else if (event.action === "cancelled") {
+      setOccupiedSlots((prev) => prev.filter((t) => t !== event.appointmentTime));
+    }
+    if (event.appointmentTime === formData.appointmentTime && event.action === "booked") {
+      toast.warning("This time slot has just been booked by another user. Please select another available time.", { duration: 6000 });
+      update({ appointmentTime: "" });
+    }
+    fetchOccupiedSlots();
+  }, [formData.appointmentTime, fetchOccupiedSlots]);
+
+  useSlotUpdates(formData.doctorId, formData.appointmentDate, handleSlotEvent);
 
   const update = (partial: Partial<FormData>) => {
     setFormData((prev) => ({ ...prev, ...partial }));
@@ -147,6 +170,10 @@ export default function BookingForm() {
       if (res.status === 409) {
         const data = await res.json();
         setSuggestedSlots(data.alternatives || []);
+        setDoctorAlternatives(data.doctorAlternatives || []);
+        setConflictMessage(data.error || "");
+        setConflictFormattedDate(data.formattedDate || "");
+        setConflictFormattedTime(data.formattedTime || "");
         setConflictOpen(true);
         return;
       }
@@ -178,6 +205,11 @@ export default function BookingForm() {
   const handleSelectSuggested = (slot: { time: string; date: string }) => {
     update({ appointmentDate: slot.date, appointmentTime: slot.time });
     setStep(5);
+  };
+
+  const handleSelectDoctor = (doctor: { doctorId: string; doctorName: string; departmentName: string }) => {
+    update({ doctorId: doctor.doctorId, doctorName: doctor.doctorName, departmentName: doctor.departmentName, appointmentDate: "", appointmentTime: "" });
+    setStep(2);
   };
 
   return (
@@ -352,6 +384,7 @@ export default function BookingForm() {
                 doctorId={formData.doctorId}
                 selectedTime={formData.appointmentTime}
                 onSelect={(time) => update({ appointmentTime: time })}
+                onOccupiedClick={(time) => toast.error(`This time slot has been booked by another user. Please choose another time slot.`)}
                 occupiedSlots={occupiedSlots}
               />
             )}
@@ -453,7 +486,12 @@ export default function BookingForm() {
         open={conflictOpen}
         onClose={() => setConflictOpen(false)}
         suggestedSlots={suggestedSlots}
+        doctorAlternatives={doctorAlternatives}
+        message={conflictMessage}
+        formattedDate={conflictFormattedDate}
+        formattedTime={conflictFormattedTime}
         onSelectSlot={handleSelectSuggested}
+        onSelectDoctor={handleSelectDoctor}
       />
     </div>
   );

@@ -10,6 +10,7 @@ import {
   Stethoscope,
   Building2,
   Settings,
+  Activity,
   ChevronLeft,
   ChevronRight,
   Menu,
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/doctors", label: "Doctors", icon: Stethoscope },
   { href: "/admin/departments", label: "Departments", icon: Building2 },
+  { href: "/admin/activity", label: "Activity Log", icon: Activity },
   { href: "/admin/settings", label: "System Settings", icon: Settings },
 ];
 
@@ -59,16 +61,12 @@ export default function AdminSidebar() {
         <div className="flex items-center justify-between h-16 px-4 border-b border-white/10">
           {!collapsed && (
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-sm">CC</span>
-              </div>
+              <img src="/logo.png" alt="Logo" className="w-8 h-8 rounded-lg flex-shrink-0" />
               <span className="font-semibold text-sm">Admin Panel</span>
             </div>
           )}
           {collapsed && (
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center mx-auto flex-shrink-0">
-              <span className="text-white font-bold text-sm">CC</span>
-            </div>
+            <img src="/logo.png" alt="Logo" className="w-8 h-8 rounded-lg mx-auto flex-shrink-0" />
           )}
           <button
             onClick={() => { setMobileOpen(false); }}

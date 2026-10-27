@@ -27,4 +27,8 @@ const UserSchema = new Schema<IUserDoc>(
   { timestamps: true }
 );
 
+UserSchema.index({ role: 1 });
+UserSchema.index({ createdAt: -1 });
+UserSchema.index({ resetToken: 1 });
+
 export const User = mongoose.models.User || mongoose.model<IUserDoc>("User", UserSchema);

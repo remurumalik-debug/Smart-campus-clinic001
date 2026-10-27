@@ -13,14 +13,16 @@ export default function StaffPatientsPage() {
   const fetchPatients = async () => {
     setLoading(true);
     try {
-      let url = "/api/admin/users?limit=100";
+      let url = "/api/admin/users?type=student&limit=100";
       if (search) url += `&search=${encodeURIComponent(search)}`;
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setPatients(data.users || []);
       }
-    } catch {}
+    } catch (e) {
+      console.error("Failed to fetch patients", e);
+    }
     setLoading(false);
   };
 

@@ -84,9 +84,7 @@ export default function AdminLoginPage() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-md mx-auto"
         >
-          <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/20">
-            <Shield className="w-7 h-7 text-white" />
-          </div>
+          <img src="/logo.png" alt="Logo" className="w-14 h-14 rounded-2xl mx-auto mb-4 shadow-lg shadow-primary/20" />
           <h1 className="text-xl sm:text-2xl font-bold text-white">Administrator Portal</h1>
           <p className="text-gray-400 mt-1 text-sm">Campus Clinic Management System</p>
         </motion.div>

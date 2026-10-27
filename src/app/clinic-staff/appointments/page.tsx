@@ -24,7 +24,9 @@ export default function StaffAppointmentsPage() {
         const data = await res.json();
         setAppointments(data.appointments || []);
       }
-    } catch {}
+    } catch (e) {
+      console.error("Failed to fetch appointments", e);
+    }
     setLoading(false);
   };
 
@@ -72,7 +74,7 @@ export default function StaffAppointmentsPage() {
             />
           </div>
           <div className="flex gap-2 flex-wrap overflow-x-auto pb-1">
-            {["", "pending", "approved", "completed", "cancelled"].map((s) => (
+            {["", "pending", "approved", "rejected", "completed", "cancelled"].map((s) => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
@@ -120,12 +122,17 @@ export default function StaffAppointmentsPage() {
                     <td className="py-3 px-4 text-muted">{apt.appointmentTime}</td>
                     <td className="py-3 px-4"><StatusBadge status={apt.status} /></td>
                     <td className="py-3 px-4">
-                      {apt.status === "pending" && (
-                        <button onClick={() => updateStatus(apt._id, "approved")} className="px-3 py-1.5 text-xs font-medium text-green-600 bg-green-50 rounded-md hover:bg-green-100 cursor-pointer min-h-[32px]">Approve</button>
-                      )}
-                      {apt.status === "approved" && (
-                        <button onClick={() => updateStatus(apt._id, "completed")} className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 cursor-pointer min-h-[32px]">Complete</button>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {apt.status === "pending" && (
+                          <>
+                            <button onClick={() => updateStatus(apt._id, "approved")} className="px-3 py-1.5 text-xs font-medium text-green-600 bg-green-50 rounded-md hover:bg-green-100 cursor-pointer min-h-[32px]">Approve</button>
+                            <button onClick={() => updateStatus(apt._id, "rejected")} className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 cursor-pointer min-h-[32px]">Reject</button>
+                          </>
+                        )}
+                        {apt.status === "approved" && (
+                          <button onClick={() => updateStatus(apt._id, "completed")} className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 cursor-pointer min-h-[32px]">Complete</button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

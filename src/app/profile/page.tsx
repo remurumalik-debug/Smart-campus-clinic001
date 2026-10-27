@@ -37,7 +37,9 @@ export default function ProfilePage() {
         setDepartment(data.department || "");
         setImage(data.image || "");
       }
-    } catch {}
+    } catch (e) {
+      console.error("Failed to fetch profile", e);
+    }
     setLoading(false);
   };
 
@@ -67,7 +69,9 @@ export default function ProfilePage() {
           updateSession();
           setTimeout(() => setSuccess(""), 3000);
         }
-      } catch {}
+      } catch (e) {
+        console.error("Failed to upload image", e);
+      }
     };
     reader.readAsDataURL(file);
   };

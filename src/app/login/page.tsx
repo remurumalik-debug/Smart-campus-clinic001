@@ -48,9 +48,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <div className="bg-dark px-4 sm:px-6 py-8 sm:py-12 text-center">
         <button type="button" onClick={() => router.push("/")} className="inline-flex items-center gap-2 mb-4 mx-auto cursor-pointer bg-transparent border-none">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-            <span className="text-white font-bold">CC</span>
-          </div>
+          <img src="/logo.png" alt="Logo" className="w-10 h-10 rounded-xl" />
         </button>
         <h1 className="text-xl sm:text-2xl font-bold text-white">Welcome Back</h1>
         <p className="text-gray-400 mt-1 text-sm">Sign in to your student account</p>

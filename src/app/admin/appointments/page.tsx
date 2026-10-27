@@ -23,8 +23,12 @@ export default function AdminAppointmentsPage() {
       if (res.ok) {
         const data = await res.json();
         setAppointments(data.appointments || []);
+      } else {
+        console.error("Failed to fetch appointments", res.status);
       }
-    } catch {}
+    } catch (e) {
+      console.error("Failed to fetch appointments", e);
+    }
     setLoading(false);
   };
 

@@ -57,16 +57,12 @@ export default function StudentSidebar() {
         <div className="flex items-center justify-between h-16 px-4 border-b border-white/10">
           {!collapsed && (
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-sm">CC</span>
-              </div>
+              <img src="/logo.png" alt="Logo" className="w-8 h-8 rounded-lg flex-shrink-0" />
               <span className="font-semibold text-sm">Student Portal</span>
             </div>
           )}
           {collapsed && (
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center mx-auto flex-shrink-0">
-              <span className="text-white font-bold text-sm">CC</span>
-            </div>
+            <img src="/logo.png" alt="Logo" className="w-8 h-8 rounded-lg mx-auto flex-shrink-0" />
           )}
           <button
             onClick={() => { setMobileOpen(false); }}

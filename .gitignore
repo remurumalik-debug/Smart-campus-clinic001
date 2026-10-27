@@ -33,9 +33,19 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# local data and scratch files
+/.data/
+/speedtest.txt
+/tmp_gen.js
+/tmp_write.js
+
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# dev logs
+dev.log
+dev.err

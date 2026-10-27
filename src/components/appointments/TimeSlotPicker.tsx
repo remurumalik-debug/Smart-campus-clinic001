@@ -7,6 +7,7 @@ interface TimeSlotPickerProps {
   doctorId: string;
   selectedTime: string;
   onSelect: (time: string) => void;
+  onOccupiedClick?: (time: string) => void;
   occupiedSlots: string[];
 }
 
@@ -22,6 +23,7 @@ export default function TimeSlotPicker({
   doctorId,
   selectedTime,
   onSelect,
+  onOccupiedClick,
   occupiedSlots,
 }: TimeSlotPickerProps) {
   if (!selectedDate || !doctorId) {
@@ -44,7 +46,7 @@ export default function TimeSlotPicker({
             key={time}
             type="button"
             disabled={isOccupied}
-            onClick={() => !isOccupied && onSelect(time)}
+            onClick={() => isOccupied ? onOccupiedClick?.(time) : onSelect(time)}
             className={cn(
               "relative flex items-center justify-center h-10 rounded-lg text-sm font-medium transition-all duration-200 border",
               isSelected && "bg-primary text-white border-primary shadow-sm",
@@ -53,11 +55,6 @@ export default function TimeSlotPicker({
             )}
           >
             {formatSlotTime(time)}
-            {isOccupied && (
-              <span className="absolute -top-1.5 -right-1.5 bg-gray-200 text-gray-500 text-[10px] px-1 py-0.5 rounded-full leading-none">
-                Booked
-              </span>
-            )}
           </button>
         );
       })}
